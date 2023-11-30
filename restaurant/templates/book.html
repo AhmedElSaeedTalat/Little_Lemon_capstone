@@ -48,20 +48,10 @@
         </ul>
     </nav>
     <section class="book_body">
-        <form>
-            <div class="form-group">
-                <label for="name">name</label>
-                <input type="text" class="form-control" id="name" aria-describedby="nameHelp" placeholder="Enter name">
-            </div>
-            <div class="form-group">
-                <label for="date">booking date</label>
-                <input type="date" class="form-control" id="date">
-            </div>
-            <div class="form-group">
-                <label class="form-check-label" for="number">slot number</label>
-                <input type="number" class="form-control" id="number">
-            </div>
-            <button type="submit" class="btn">Submit</button>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn" id="bookingbtn"> confirm booking </button>
         </form>
     </section>
     <footer>
@@ -72,5 +62,13 @@
             <p>Copyright {{ current_year }} Little Lemon</p>
         </article>
     </footer>
+    <script>
+        $(document).ready(function () {
+            $('.date').attr('type', 'date')
+        });
+        $('#bookingbtn').click(function (e){
+            e.preventDefault()
+        })
+    </script>
 </body>
 </html>
