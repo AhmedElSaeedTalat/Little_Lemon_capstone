@@ -23,5 +23,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('book/', views.BookView.as_view(), name='book'),
     path('menu/', views.menu, name='menu'),
+    path('bookings/', views.bookingView, name='bookings'),
     path('api/', include('restaurant.urls'))
 ]

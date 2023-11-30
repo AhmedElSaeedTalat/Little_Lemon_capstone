@@ -47,12 +47,18 @@
             <li><a href="{% url 'book' %}">Book</a></li>
         </ul>
     </nav>
-    <section class="book_body">
-        <form method="POST">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button class="btn" id="bookingbtn"> confirm booking </button>
-        </form>
+    <section id="bookings">
+        <div class="containter">
+            <div class="row">
+                {% for booking in bookings %}
+                <div class="col-mid-4">
+                    <p>reservation's name: {{ booking.name }}</p>
+                    <p>date: {{ booking.date }}</p>
+                    <p>slots for: {{ booking.slots }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </section>
     <footer>
         <article>
@@ -62,36 +68,5 @@
             <p>Copyright {{ current_year }} Little Lemon</p>
         </article>
     </footer>
-    <script>
-        $(document).ready(function () {
-            $('.date').attr('type', 'date')
-        });
-        $('#bookingbtn').click(function (e){
-            e.preventDefault();
-            const csrftoken = $('[name="csrfmiddlewaretoken"]').val();
-            const name = $('#id_name').val();
-            const date = $('#id_date').val();
-            const slots = $('#id_slots').val();
-            console.log(name);
-            console.log(date);
-            console.log(slots);
-            data = {
-                'name': name,
-                'date': date,
-                'slots': slots
-            };
-            fetch("{% url 'book' %}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify(data),
-            }).then(res => res.text()).then(data => {
-                if (data === 'success') {
-                    alert('booking is confirmed.')
-                }
-            })
-            })
-    </script>
 </body>
 </html>

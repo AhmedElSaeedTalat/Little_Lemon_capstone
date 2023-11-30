@@ -269,3 +269,6 @@ footer p {
 .book_body {
     min-height: 32vw;
 }
+#bookings {
+    min-height: 32vw;
+}
