@@ -5,6 +5,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
 from .models import Bookings
+from .serializers import BookingsSerializers
+from rest_framework import viewsets
+from rest_framework.response import Response
 
 # Create your views here.
 def home(request):
@@ -37,3 +40,12 @@ def bookingView(request):
     bookings = Bookings.objects.all()
     context = {'bookings': bookings}
     return render(request, 'booking.html', context)
+
+""" API Views """
+class ReservationsApi(viewsets.ViewSet):
+    """ display api """
+    def list(self, request):
+        """ list all bookings """
+        query_set = Bookings.objects.all()
+        serializer = BookingsSerializers(query_set, many=True)
+        return Response(serializer.data)

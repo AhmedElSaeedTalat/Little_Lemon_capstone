@@ -72,9 +72,12 @@
             const name = $('#id_name').val();
             const date = $('#id_date').val();
             const slots = $('#id_slots').val();
-            console.log(name);
-            console.log(date);
-            console.log(slots);
+            dateInserted = new Date(date)
+            todayDate = new Date()
+            if (todayDate > dateInserted) {
+                alert('not valid date');
+                return;
+            }
             data = {
                 'name': name,
                 'date': date,
