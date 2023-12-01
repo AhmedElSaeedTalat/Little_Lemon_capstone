@@ -4,12 +4,18 @@ from restaurant.forms import BookingForm
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
-from .models import Bookings
-from .serializers import BookingsSerializers
-from rest_framework import viewsets
+from .models import Bookings, Menu, Cart, Orders, OrderItem
+from .serializers import BookingsSerializers, MenuSerializer,\
+CartSerializers, OrderSerializers, OrderItemSerializers
+from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.decorators import action, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User, Group
+from django.shortcuts import get_object_or_404
 
-# Create your views here.
+
+# views here.
 def home(request):
     """ view function for home page """
     return render(request, 'index.html')
@@ -49,3 +55,74 @@ class ReservationsApi(viewsets.ViewSet):
         query_set = Bookings.objects.all()
         serializer = BookingsSerializers(query_set, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['POST'])
+    def set(self, request):
+        """ function to create booking through API """
+        serializer = BookingsSerializers(data=request.data)
+        if serializer.is_valid():
+            booking = Bookings.objects.create(
+                name = serializer.validated_data['name'],
+                date = serializer.validated_data['date'],
+                slots = serializer.validated_data['slots']
+            )
+            booking.save()
+            return Response(serializer.data)
+
+class MenuApiView(viewsets.ViewSet):
+    """ class to view menu items and post to it"""
+    def list(self, request):
+        """ list Menu items """
+        query_set = Menu.objects.all()
+        serializer = MenuSerializer(query_set, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['POST'])
+    def add_item(self, request):
+        """ function to add menu items """
+        serializer = MenuSerializer(data=request.data)
+        if serializer.is_valid():
+            menu = Menu(
+                menuItem = serializer.validated_data['menuItem'],
+                description = serializer.validated_data['description'],
+                price = serializer.validated_data['price']
+            )
+            menu.save()
+            return Response(serializer.data)
+
+@permission_classes([IsAuthenticated])
+class CartApiView(viewsets.ViewSet):
+    """ list cart and post to cart """
+    def list(self, request):
+        query_set = Cart.objects.filter(user=request.user).first()
+        serializer = CartSerializers(query_set, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['POST'])
+    def post(self, request):
+        """ post to cart """
+        user_id = request.user.id
+        # user = get_object_or_404(User, id=user_id)
+        data = request.data
+        item_id = data['item']
+        quantity = data['quantity']
+        item = get_object_or_404(Menu, id=item_id)
+        price = item.price
+        totalprice = price * quantity
+        data['totalprice'] = totalprice
+        data['user'] = user_id
+        data['item'] = item_id
+        serializer = CartSerializers(data=data)
+        if serializer.is_valid():
+            cart = Cart.objects.create(
+                item = serializer.validated_data['item'],
+                user = serializer.validated_data['user'],
+                quantity = serializer.validated_data['quantity'],
+                totalprice = serializer.validated_data['totalprice']
+            )
+            cart.save()
+            return Response(serializer.data)
+        else:
+            errors = serializer.errors
+            print(errors)
+            return Response('not valid')
