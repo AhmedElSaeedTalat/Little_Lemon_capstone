@@ -134,8 +134,11 @@ class OrdersApiView(viewsets.ViewSet):
     """
     def list(self, request):
         """ list all orders """
-        user_id = request.user.id
-        orders = Orders.objects.filter(user=get_object_or_404(User, id=user_id)).all()
+        if request.user.groups.filter(name='Maneger').exists():
+            orders = Orders.objects.all()
+        else:
+            user_id = request.user.id
+            orders = Orders.objects.filter(user=get_object_or_404(User, id=user_id)).all()
         serializer = OrderSerializers(orders, many=True)
         return Response(serializer.data)
     
