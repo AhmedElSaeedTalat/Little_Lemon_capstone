@@ -57,7 +57,7 @@ class ReservationsApi(viewsets.ViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['POST'])
-    def set(self, request):
+    def post(self, request):
         """ function to create booking through API """
         serializer = BookingsSerializers(data=request.data)
         if serializer.is_valid():
@@ -78,7 +78,7 @@ class MenuApiView(viewsets.ViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['POST'])
-    def add_item(self, request):
+    def post(self, request):
         """ function to add menu items """
         serializer = MenuSerializer(data=request.data)
         if serializer.is_valid():
@@ -94,7 +94,7 @@ class MenuApiView(viewsets.ViewSet):
 class CartApiView(viewsets.ViewSet):
     """ list cart and post to cart """
     def list(self, request):
-        query_set = Cart.objects.filter(user=request.user).first()
+        query_set = Cart.objects.filter(user=request.user).all()
         serializer = CartSerializers(query_set, many=True)
         return Response(serializer.data)
     
@@ -102,7 +102,6 @@ class CartApiView(viewsets.ViewSet):
     def post(self, request):
         """ post to cart """
         user_id = request.user.id
-        # user = get_object_or_404(User, id=user_id)
         data = request.data
         item_id = data['item']
         quantity = data['quantity']
@@ -126,3 +125,59 @@ class CartApiView(viewsets.ViewSet):
             errors = serializer.errors
             print(errors)
             return Response('not valid')
+
+@permission_classes([IsAuthenticated])
+class OrdersApiView(viewsets.ViewSet):
+    """ 
+    class to place orders
+    orders are created and orderItems related also
+    """
+    def list(self, request):
+        """ list all orders """
+        user_id = request.user.id
+        orders = Orders.objects.filter(user=get_object_or_404(User, id=user_id)).all()
+        serializer = OrderSerializers(orders, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['POST'])
+    def post(self, request):
+        """ create orders """
+        user_id = request.user.id
+        user = get_object_or_404(User, id=user_id)
+        cart = Cart.objects.filter(user=user).all()
+        """ create order """
+        sum = 0
+        for item in cart:
+            sum += item.totalprice
+        order = Orders.objects.create(
+            user = user,
+            totalPrice = sum
+        )
+        order.save()
+        """ create order items  and relate them to order created """
+        for element in cart:
+            order_item = OrderItem.objects.create(
+                order = order,
+                item = element.item,
+                quentity = element.quantity,
+                totalPrice = element.totalprice
+            )
+            order_item.save()
+        
+        """ delete cart objects """
+        cart = Cart.objects.filter(user=user_id).delete()
+        """ display order created """
+        serializer = OrderSerializers(order)
+        return Response(serializer.data)
+    
+@permission_classes([IsAuthenticated])
+class OrderItemApiView(viewsets.ViewSet):
+    """ list order items """
+    def list(self, request):
+        user = get_object_or_404(User, id=request.user.id)
+        orders = user.order.all()
+        items = []
+        for order in orders:
+            items.extend(order.orderItem.all())
+        serializer = OrderItemSerializers(items, many=True)
+        return Response(serializer.data)
