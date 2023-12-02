@@ -183,7 +183,19 @@ class OrdersApiView(viewsets.ViewSet):
             return Response(serializer.data)
         else:
             return Response('unauthorized', 403)
-        
+    
+    @action(detail=False, methods=['DELETE'])
+    def delete(self, request, pk=None):
+        """ user wants to delete his order """
+        order = get_object_or_404(Orders, id=pk)
+        user = order.user
+        user_id = user.id
+        if request.user.groups.filter(name='Maneger').exists() \
+or request.user.id == user_id:
+            order.delete()
+            return Response('order got cancelled')
+        else:
+            return Response('unauthorized', 403)        
     
 @permission_classes([IsAuthenticated])
 class OrderItemApiView(viewsets.ViewSet):
