@@ -22,7 +22,9 @@ def home(request):
 
 def menu(request):
     """ return menu page """
-    return render(request, 'menu.html')
+    menu = Menu.objects.all()
+    context = {'menu': menu}
+    return render(request, 'menu.html', context)
 
 class BookView(View):
     """ class for booking tempates """
