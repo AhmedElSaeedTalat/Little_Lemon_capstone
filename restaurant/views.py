@@ -56,6 +56,19 @@ class ReservationsApi(viewsets.ViewSet):
         serializer = BookingsSerializers(query_set, many=True)
         return Response(serializer.data)
 
+    def retrieve(self, request, pk):
+        """ retrieve one booking item """
+        query_set = Bookings.objects.get(id=pk)
+        serializer = BookingsSerializers(query_set)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['DELETE'])
+    def delete(self, request, pk):
+        """ delete booking item"""
+        booking = Bookings.objects.get(id=pk)
+        booking.delete()
+        return Response('booking got canceled')
+
     @action(detail=False, methods=['POST'])
     def post(self, request):
         """ function to create booking through API """
@@ -76,6 +89,19 @@ class MenuApiView(viewsets.ViewSet):
         query_set = Menu.objects.all()
         serializer = MenuSerializer(query_set, many=True)
         return Response(serializer.data)
+
+    def retrieve(self, request, pk):
+        """ retrieve one menu item """
+        query_set = Menu.objects.get(id=pk)
+        serializer = MenuSerializer(query_set)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['DELETE'])
+    def delete(self, request, pk):
+        """ delete menu item"""
+        item = Menu.objects.get(id=pk)
+        item.delete()
+        return Response('item got deleted')
 
     @action(detail=False, methods=['POST'])
     def post(self, request):
