@@ -172,6 +172,18 @@ class OrdersApiView(viewsets.ViewSet):
         """ display order created """
         serializer = OrderSerializers(order)
         return Response(serializer.data)
+
+    def partial_update(self, request, *args, **kwargs):
+        """ manager updates the crew """
+        if request.user.groups.filter(name='Maneger').exists():
+            instance = get_object_or_404(Orders, id=self.kwargs['pk'])
+            serializer = OrderSerializers(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response('unauthorized', 403)
+        
     
 @permission_classes([IsAuthenticated])
 class OrderItemApiView(viewsets.ViewSet):
