@@ -88,6 +88,17 @@ DATABASES = {
     }
 }
 
+DATABASES['test'] = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'test_bookings',
+        'USER': 'djangoadmin',
+        'HOST': 'localhost',
+        'PASSWORD': 'booking',
+        'PORT': '3307'
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
